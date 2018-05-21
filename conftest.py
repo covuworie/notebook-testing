@@ -17,9 +17,12 @@ from IPython.core.interactiveshell import InteractiveShell
 
 from isort.isort import SortImports
 
+TEST_FILE_PATTERNS = ['test_*.ipynb', '*_test.ipynb']
+
 def pytest_collect_file(path, parent):
-    if path.ext == ".ipynb":
-        write_notebook_source(path)
+    for pattern in TEST_FILE_PATTERNS:
+        if glob.fnmatch.fnmatch(glob.os.path.basename(path), pattern):
+            write_notebook_source(path)
         
 def write_notebook_source(path):
     nb = nbf.read(path, as_version=nbf.NO_CONVERT) # validate nbformat 4 only
