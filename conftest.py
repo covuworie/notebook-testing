@@ -1,29 +1,33 @@
-import pytest
-import os
-import sys
-
-import nbformat as nbf
-
 import ast
 import collections
 import glob
 import os
+import sys
 
-from astor import to_source
-from ipynb.utils import code_from_ipynb, validate_nb, filter_ast
 import nbformat as nbf
-
+import pytest
+from astor import to_source
+from ipynb.utils import code_from_ipynb, filter_ast, validate_nb
 from IPython.core.interactiveshell import InteractiveShell
-
 from isort.isort import SortImports
 
 TEST_FILE_PATTERNS = ['test_*.ipynb', '*_test.ipynb']
 
-def pytest_collect_file(path, parent):
-    for pattern in TEST_FILE_PATTERNS:
-        if glob.fnmatch.fnmatch(glob.os.path.basename(path), pattern):
-            write_notebook_source(path)
+paths_written = []
+
+def pytest_collect_directory(path, parent):
+    tests_by_pattern = [glob.glob(pathname=''.join([str(path), os.path.sep, pattern]), recursive=False)
+                        for pattern in TEST_FILE_PATTERNS]
+    tests = [test for tests_in_dir in tests_by_pattern for test in tests_in_dir]
+    for test in tests:
+        write_notebook_source(test)
         
+def pytest_unconfigure(config):
+    for path_written in paths_written:
+        os.remove(path_written)
+        print('Deleted file ', path_written)
+    paths_written.clear()
+
 def write_notebook_source(path):
     nb = nbf.read(path, as_version=nbf.NO_CONVERT) # validate nbformat 4 only
         
@@ -68,3 +72,4 @@ def write_notebook_source(path):
     with open(filename, 'w', encoding='utf-8') as py_file:
         py_file.write(to_source(code))
         print('Written file ', filename)
+        paths_written.append(filename)
