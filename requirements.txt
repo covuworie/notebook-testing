@@ -1,0 +1,10 @@
+-i https://pypi.org/simple
+attrs==18.1.0
+colorama==0.3.9; sys_platform == 'win32'
+ipytest==0.2.2
+more-itertools==4.1.0
+numpy==1.14.3
+pluggy==0.6.0
+py==1.5.3
+pytest==3.5.1
+six==1.11.0
